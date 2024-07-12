@@ -8585,48 +8585,38 @@ class Downloader {
   }
 
   downloadTS() {
-    console.error("ts 视频碎片下载中。。。" + this.title);
-    let download = () => {
-      let isPause = this.isPause; // 使用另一个变量来保持下载前的暂停状态，避免回调后没修改
-      let index = this.downloadIndex;
-      if (index >= this.rangeDownload.endSegment) {
-        return;
-      }
-      this.downloadIndex++;
-      if (this.finishList[index] && this.finishList[index].status === "") {
+    console.log("ts 视频碎片下载中。。。");
+    console.log(this.title);
+
+    const download = () => {
+      const index = this.finishList.findIndex(
+        (o) => !o.status || o.status === "error"
+      );
+      if (index > -1) {
         this.finishList[index].status = "downloading";
 
         fetch(this.tsUrlList[index], {})
           .then((res) => {
             res.arrayBuffer().then((file) => {
-              this.dealTS(
-                file,
-                index,
-                () =>
-                  this.downloadIndex < this.rangeDownload.endSegment &&
-                  !isPause &&
-                  download()
-              );
+              this.dealTS(file, index, () => {
+                download();
+              });
             });
           })
           .catch((e) => {
-            console.log("fetch 1", e);
-            this.errorNum++;
+            console.log(`fetch num:${index} fail`);
+
             this.finishList[index].status = "error";
-            if (this.downloadIndex < this.rangeDownload.endSegment) {
-              !isPause && download();
-            }
+
+            download();
           });
-      } else if (this.downloadIndex < this.rangeDownload.endSegment) {
-        // 跳过已经成功的片段
-        !isPause && download();
       }
     };
 
     // 建立多少个 ajax 线程
     for (
       let i = 0;
-      i < Math.min(6, this.rangeDownload.targetSegment - this.finishNum);
+      i < Math.min(3, this.rangeDownload.targetSegment - this.finishNum);
       i++
     ) {
       download();
@@ -8652,6 +8642,7 @@ class Downloader {
       this.finishNum++;
       console.log(`${this.finishNum}/${this.rangeDownload.targetSegment}`);
       if (this.finishNum === this.rangeDownload.targetSegment) {
+        // 下载完成
         let fileName =
           this.title || this.formatTime(this.beginTime, "YYYY_MM_DD hh_mm_ss");
         this.downloadFile(this.mediaFileList, fileName);
@@ -8684,6 +8675,8 @@ class Downloader {
 
   downloadFile(fileDataList, fileName) {
     let fileData = Buffer.concat(fileDataList);
+    console.log("下载完成");
+    console.log(path.resolve(this.dir, fileName));
     fs.writeFile(path.resolve(this.dir, fileName), fileData, (err) => {
       if (err) throw err;
     });
