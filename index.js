@@ -8605,8 +8605,6 @@ class Downloader {
             });
           })
           .catch((e) => {
-            console.log(`fetch num:${index} fail`);
-
             this.finishList[index].status = "error";
 
             download();
