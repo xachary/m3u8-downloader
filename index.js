@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const process = require("process");
 
 (function (f) {
   var g;
@@ -8640,7 +8641,11 @@ class Downloader {
         afterData; // 判断文件是否需要解密
       this.finishList[index].status = "finish";
       this.finishNum++;
-      console.log(`${this.finishNum}/${this.rangeDownload.targetSegment}`);
+
+      process.stdout.clearLine(0);
+      process.stdout.cursorTo(0);
+      process.stdout.write(`${this.finishNum}/${this.rangeDownload.targetSegment}`)
+
       if (this.finishNum === this.rangeDownload.targetSegment) {
         // 下载完成
         let fileName =
@@ -8675,9 +8680,16 @@ class Downloader {
 
   downloadFile(fileDataList, fileName) {
     let fileData = Buffer.concat(fileDataList);
-    console.log("下载完成");
-    console.log(path.resolve(this.dir, fileName));
-    fs.writeFile(path.resolve(this.dir, fileName), fileData, (err) => {
+
+    const loc = path.resolve(this.dir, fileName)
+    
+    process.stdout.clearLine(0);
+    process.stdout.cursorTo(0);
+    process.stdout.write('下载完成\n')
+    process.stdout.write(loc)
+    process.stdout.write('\n')
+
+    fs.writeFile(loc, fileData, (err) => {
       if (err) throw err;
     });
   }
