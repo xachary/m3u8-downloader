@@ -8443,7 +8443,7 @@ class Downloader {
   beginTime = "";
 
   constructor(url) {
-    this.title = url.match(/[&?]title=([^&]*)/)[1] + '.mp4';
+    this.title = url.match(/[&?]title=([^&]*)/)[1] + ".mp4";
     this.url = url;
     this.location = {
       href: url,
@@ -8680,6 +8680,6 @@ class Downloader {
   }
 }
 
-new Downloader(
-  `https://hls.vdtuzv.com/videos4/3a987919297e855e8ce07f79082fc62a/3a987919297e855e8ce07f79082fc62a.m3u8?auth_key=1720770208-6690dea0877d1-0-40bc861c94caf306b231b01fe519c676&v=3&time=0&title=兰兰老师教你怎样插入小妹妹才不会痛！提升两性做爱质量！`
-);
+if (process.argv[2]) {
+  new Downloader(process.argv[2]);
+}
