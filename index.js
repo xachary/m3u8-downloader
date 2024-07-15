@@ -8446,7 +8446,8 @@ class Downloader {
   dir = "";
 
   constructor(url = "", dir = "") {
-    this.title = url.match(/[&?]title=([^&]*)/)[1] + ".mp4";
+    this.title =
+      url.match(/[&?]title=([^&]*)/)[1].replace(/[\/\\&?]/g, "") + ".mp4";
     this.url = url;
     this.dir = dir;
     this.location = {
