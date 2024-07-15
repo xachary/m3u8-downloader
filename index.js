@@ -8454,95 +8454,99 @@ class Downloader {
     };
   }
 
-  start() {
+  async start() {
     this.beginTime = new Date();
 
-    return fetch(this.url, {}).then((res) =>
-      res.text().then((m3u8Str) => {
-        let infoIndex = 0;
+    let res = await fetch(this.url, {});
 
-        // 提取 ts 视频片段地址
-        m3u8Str.split("\n").forEach((item) => {
-          // if (/.(png|image|ts|jpg|mp4|jpeg)/.test(item)) {
-          // 放开片段后缀限制，下载非 # 开头的链接片段
-          if (/^[^#]/.test(item)) {
-            this.tsUrlList.push(this.applyURL(item, this.url));
-            this.finishList.push({
-              title: item,
-              status: "",
-            });
-          }
+    console.log("\n获取 m3u8 信息中...");
+
+    let m3u8Str = await res.text();
+
+    if (!/^#/.test(m3u8Str)) {
+      throw new Error("Bad Request");
+    }
+
+    console.log("获取成功！");
+
+    let infoIndex = 0;
+
+    // 提取 ts 视频片段地址
+    m3u8Str.split("\n").forEach((item) => {
+      // if (/.(png|image|ts|jpg|mp4|jpeg)/.test(item)) {
+      // 放开片段后缀限制，下载非 # 开头的链接片段
+      if (/^[^#]/.test(item)) {
+        this.tsUrlList.push(this.applyURL(item, this.url));
+        this.finishList.push({
+          title: item,
+          status: "",
         });
+      }
+    });
 
-        let startSegment = Math.max(this.rangeDownload.startSegment || 1, 1); // 最小为 1
-        let endSegment = Math.max(
-          this.rangeDownload.endSegment || this.tsUrlList.length,
-          1
-        );
-        startSegment = Math.min(startSegment, this.tsUrlList.length); // 最大为 this.tsUrlList.length
-        endSegment = Math.min(endSegment, this.tsUrlList.length);
-        this.rangeDownload.startSegment = Math.min(startSegment, endSegment);
-        this.rangeDownload.endSegment = Math.max(startSegment, endSegment);
-        this.rangeDownload.targetSegment =
-          this.rangeDownload.endSegment - this.rangeDownload.startSegment + 1;
-        this.downloadIndex = this.rangeDownload.startSegment - 1;
-        this.downloading = true;
-
-        // 获取需要下载的 MP4 视频长度
-        m3u8Str.split("\n").forEach((item) => {
-          if (item.toUpperCase().indexOf("#EXTINF:") > -1) {
-            // 计算视频总时长，设置 mp4 信息时使用
-            infoIndex++;
-            if (
-              this.rangeDownload.startSegment <= infoIndex &&
-              infoIndex <= this.rangeDownload.endSegment
-            ) {
-              this.durationSecond += parseFloat(item.split("#EXTINF:")[1]);
-            }
-          }
-        });
-
-        // 检测视频 AES 加密
-        if (m3u8Str.indexOf("#EXT-X-KEY") > -1) {
-          this.aesConf.method = (m3u8Str.match(/(.*METHOD=([^,\s]+))/) || [
-            "",
-            "",
-            "",
-          ])[2];
-          this.aesConf.uri = (m3u8Str.match(/(.*URI="([^"]+))"/) || [
-            "",
-            "",
-            "",
-          ])[2];
-          this.aesConf.iv = (m3u8Str.match(/(.*IV=([^,\s]+))/) || [
-            "",
-            "",
-            "",
-          ])[2];
-          this.aesConf.iv = this.aesConf.iv
-            ? this.aesConf.stringToBuffer(this.aesConf.iv)
-            : "";
-          this.aesConf.uri = this.applyURL(this.aesConf.uri, this.url);
-
-          // let params = m3u8Str.match(/#EXT-X-KEY:([^,]*,?METHOD=([^,]+))?([^,]*,?URI="([^,]+)")?([^,]*,?IV=([^,^\n]+))?/)
-          // this.aesConf.method = params[2]
-          // this.aesConf.uri = this.applyURL(params[4], this.url)
-          // this.aesConf.iv = params[6] ? this.aesConf.stringToBuffer(params[6]) : ''
-          this.getAES();
-        } else if (this.tsUrlList.length > 0) {
-          // 如果视频没加密，则直接下载片段，否则先下载秘钥
-          this.downloadTS();
-        } else {
-          this.alertError("资源为空，请查看链接是否有效");
-        }
-
-        // console.log(m3u8Str);
-        // console.log(this.tsUrlList);
-        // console.log(this.finishList);
-        // console.log(this.durationSecond);
-        // console.log(this.rangeDownload);
-      })
+    let startSegment = Math.max(this.rangeDownload.startSegment || 1, 1); // 最小为 1
+    let endSegment = Math.max(
+      this.rangeDownload.endSegment || this.tsUrlList.length,
+      1
     );
+    startSegment = Math.min(startSegment, this.tsUrlList.length); // 最大为 this.tsUrlList.length
+    endSegment = Math.min(endSegment, this.tsUrlList.length);
+    this.rangeDownload.startSegment = Math.min(startSegment, endSegment);
+    this.rangeDownload.endSegment = Math.max(startSegment, endSegment);
+    this.rangeDownload.targetSegment =
+      this.rangeDownload.endSegment - this.rangeDownload.startSegment + 1;
+    this.downloadIndex = this.rangeDownload.startSegment - 1;
+    this.downloading = true;
+
+    // 获取需要下载的 MP4 视频长度
+    m3u8Str.split("\n").forEach((item) => {
+      if (item.toUpperCase().indexOf("#EXTINF:") > -1) {
+        // 计算视频总时长，设置 mp4 信息时使用
+        infoIndex++;
+        if (
+          this.rangeDownload.startSegment <= infoIndex &&
+          infoIndex <= this.rangeDownload.endSegment
+        ) {
+          this.durationSecond += parseFloat(item.split("#EXTINF:")[1]);
+        }
+      }
+    });
+
+    // 检测视频 AES 加密
+    if (m3u8Str.indexOf("#EXT-X-KEY") > -1) {
+      this.aesConf.method = (m3u8Str.match(/(.*METHOD=([^,\s]+))/) || [
+        "",
+        "",
+        "",
+      ])[2];
+      this.aesConf.uri = (m3u8Str.match(/(.*URI="([^"]+))"/) || [
+        "",
+        "",
+        "",
+      ])[2];
+      this.aesConf.iv = (m3u8Str.match(/(.*IV=([^,\s]+))/) || ["", "", ""])[2];
+      this.aesConf.iv = this.aesConf.iv
+        ? this.aesConf.stringToBuffer(this.aesConf.iv)
+        : "";
+      this.aesConf.uri = this.applyURL(this.aesConf.uri, this.url);
+
+      // let params = m3u8Str.match(/#EXT-X-KEY:([^,]*,?METHOD=([^,]+))?([^,]*,?URI="([^,]+)")?([^,]*,?IV=([^,^\n]+))?/)
+      // this.aesConf.method = params[2]
+      // this.aesConf.uri = this.applyURL(params[4], this.url)
+      // this.aesConf.iv = params[6] ? this.aesConf.stringToBuffer(params[6]) : ''
+      this.getAES();
+    } else if (this.tsUrlList.length > 0) {
+      // 如果视频没加密，则直接下载片段，否则先下载秘钥
+      this.downloadTS();
+    } else {
+      this.alertError("资源为空，请查看链接是否有效");
+    }
+
+    // console.log(m3u8Str);
+    // console.log(this.tsUrlList);
+    // console.log(this.finishList);
+    // console.log(this.durationSecond);
+    // console.log(this.rangeDownload);
   }
 
   applyURL(targetURL, baseURL) {
@@ -8584,7 +8588,7 @@ class Downloader {
   }
 
   downloadTS() {
-    console.log("ts 视频碎片下载中。。。");
+    console.log("ts 视频碎片下载中...");
     console.log(this.title);
 
     const download = () => {
@@ -8704,18 +8708,17 @@ if (process.argv[2]) {
         await downloader.start();
       } catch (e) {
         count++;
-        console.error(`错误第${count}次`);
+        console.error(`\n错误第${count}次`);
         if (count >= 5) {
-          console.log("终止");
-          console.error(e)
+          console.error("\n终止");
         } else {
-          console.log("重试...");
+          console.log("\n重试...\n");
           await action();
         }
       }
     };
 
-    action().then();
+    action();
   } catch (e) {
     console.trace(e);
   }
