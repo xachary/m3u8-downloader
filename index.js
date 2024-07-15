@@ -8459,15 +8459,15 @@ class Downloader {
 
     let res = await fetch(this.url, {});
 
-    console.log("\n获取 m3u8 信息中...");
+    console.log("");
+    console.log("【获取下载信息中】");
+    console.log(this.url);
 
     let m3u8Str = await res.text();
 
     if (!/^#/.test(m3u8Str)) {
       throw new Error("Bad Request");
     }
-
-    console.log("获取成功！");
 
     let infoIndex = 0;
 
@@ -8588,8 +8588,7 @@ class Downloader {
   }
 
   downloadTS() {
-    console.log("ts 视频碎片下载中...");
-    console.log(this.title);
+    console.log("【下载中】");
 
     const download = () => {
       const index = this.finishList.findIndex(
@@ -8687,7 +8686,7 @@ class Downloader {
 
     process.stdout.clearLine(0);
     process.stdout.cursorTo(0);
-    process.stdout.write("下载完成\n");
+    process.stdout.write("【下载完成】\n");
     process.stdout.write(loc);
     process.stdout.write("\n");
 
