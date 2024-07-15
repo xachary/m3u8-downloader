@@ -1,0 +1,11 @@
+{
+  "name": "m3u8-downloader",
+  "version": "1.0.0",
+  "description": "![界面](http://upyun.luckly-mjw.cn/Assets/m3u8-download/01.jpeg) ### [工具在线地址](http://blog.luckly-mjw.cn/tool-show/m3u8-downloader/index.html)，推荐使用 chrome 浏览器。",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js \"https://hls.vdtuzv.com/videos4/85776f04bd45a70d0ee5cd75afc6f087/85776f04bd45a70d0ee5cd75afc6f087.m3u8?auth_key=1720777361-6690fa915c6d8-0-9c28a83fea65385c849934f45c9c8afb&v=3&time=0&title=遥遥领先！全球首次 大疆无人机飞越珠峰 大疆运载无人机完成珠峰大本营物资运输实测！\""
+  },
+  "author": "",
+  "license": "ISC"
+}

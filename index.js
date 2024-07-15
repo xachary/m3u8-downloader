@@ -8544,6 +8544,10 @@ class Downloader {
       )
       .catch((e) => {
         console.error("fetch 2", e);
+
+        setTimeout(() => {
+          fetch(this.url, {});
+        }, 2000);
       });
   }
 
@@ -8642,7 +8646,9 @@ class Downloader {
 
       process.stdout.clearLine(0);
       process.stdout.cursorTo(0);
-      process.stdout.write(`${this.finishNum}/${this.rangeDownload.targetSegment}`)
+      process.stdout.write(
+        `${this.finishNum}/${this.rangeDownload.targetSegment}`
+      );
 
       if (this.finishNum === this.rangeDownload.targetSegment) {
         // 下载完成
@@ -8679,13 +8685,13 @@ class Downloader {
   downloadFile(fileDataList, fileName) {
     let fileData = Buffer.concat(fileDataList);
 
-    const loc = path.resolve(this.dir, fileName)
-    
+    const loc = path.resolve(this.dir, fileName);
+
     process.stdout.clearLine(0);
     process.stdout.cursorTo(0);
-    process.stdout.write('下载完成\n')
-    process.stdout.write(loc)
-    process.stdout.write('\n')
+    process.stdout.write("下载完成\n");
+    process.stdout.write(loc);
+    process.stdout.write("\n");
 
     fs.writeFile(loc, fileData, (err) => {
       if (err) throw err;
